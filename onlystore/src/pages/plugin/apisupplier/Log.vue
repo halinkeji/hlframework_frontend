@@ -1,0 +1,249 @@
+<template>
+  <q-page class="fit">
+    <div class="fit column no-wrap justify-between items-stretch content-stretch no-scroll">
+      <!-- <div class="col-shrink bg-white q-px-xs q-pb-md">
+        <q-card flat class="q-pa-sm">
+          <div class="row q-gutter-x-sm">
+            <div class="col-2">
+            <q-select
+                  outlined
+                  dense
+                  option-value="value"
+                  option-label="label"
+                  emit-value
+                  map-options
+                  v-model="apiSupplierForm.api_group"
+                  :options="enumData.groupData"
+                  label="接口类型"
+                  @input="changeGroup"
+                  :disable="apiSupplierId > 0"
+                />
+            </div>
+
+            <q-btn @click="getList()" color="primary" unelevated label="搜索" />
+            <q-btn @click="clearnBut()" color="warning" unelevated label="重置" />
+
+          </div>
+        </q-card>
+      </div> -->
+
+      <div class="col-shrink bg-white q-px-xs full-height bg-grey-2">
+        <ag-grid-vue
+          ref="agGridTable"
+          :gridOptions="gridOptions"
+          class="ag-theme-balham ag-grid-table hl_header_center hl_content_center full-height"
+          :columnDefs="columnDefs"
+          :suppressMovableColumns="true"
+          :rowData="dataList"
+          :rowDragManaged="true"
+          colResizeDefault="shift"
+          :animateRows="false"
+          :floatingFilter="false"
+          :enableCellTextSelection="true"
+          @first-data-rendered="onFirstDataRendered"
+          rowHeight="50"
+          rowSelection="multiple"
+          :suppressCellSelection="true"
+          :suppressRowClickSelection="true"
+          :context="context"
+          :localeText="localeText"
+        ></ag-grid-vue>
+      </div>
+      <div class="col-shrink bg-white q-pb-md">
+        <hl-pagination
+          @size-change="sizeChangeHandle"
+          @current-change="currentChangeHandle"
+          :current-page="page.pageIndex"
+          :page-sizes="[20, 50, 100, 200, 300, 500, 1000]"
+          :page-size="page.pSize"
+          :total="page.totalCount"
+          layout="total, sizes, prev, pager, next, jumper"
+        ></hl-pagination>
+      </div>
+    </div>
+
+    <edit-supplier v-if="isPoppupStatus" @getMethods="getList" ref="addRef"></edit-supplier>
+    <log-view-details v-if="detailDialogStatus" ref="logViewRef" />
+  </q-page>
+</template>
+<script>
+import Operator from './components/LogOperator'
+import LogViewDetails from './components/LogViewDetails'
+export default {
+  name: 'apisupplierLog',
+  components: {
+    Operator,
+    LogViewDetails
+  },
+  data () {
+    return {
+      isPoppupStatus: false,
+      context: null,
+      components: {
+        Operator
+      },
+      gridOptions: {},
+      dataList: [],
+
+      columnDefs: [
+        {
+          headerName: '',
+          field: '',
+          headerCheckboxSelectionFilteredOnly: true,
+          headerCheckboxSelection: true,
+          checkboxSelection: true,
+          width: this.nowpx(0.03) + 'px'
+        },
+
+        {
+          headerName: '接口名称',
+          field: 'apiData.name',
+          width: this.nowpx(0.2) + 'px'
+        },
+        {
+          headerName: '请求时间',
+          field: 'request_time',
+          width: this.nowpx(0.2) + 'px',
+          valueGetter: p => {
+            if (p.data.request_time) {
+              return this.$q_date.formatDate(p.data.request_time * 1000, 'YYYY-MM-DD HH:mm:ss')
+            }
+            return ''
+          }
+        },
+        {
+          headerName: '响应时间',
+          field: 'response_time',
+          width: this.nowpx(0.15) + 'px',
+          valueGetter: p => {
+            if (p.data.response_time) {
+              return this.$q_date.formatDate(p.data.response_time * 1000, 'YYYY-MM-DD HH:mm:ss')
+            }
+            return ''
+          }
+        },
+
+        {
+          headerName: '执行结束时间',
+          field: 'result_time',
+          width: this.nowpx(0.15) + 'px',
+          valueGetter: p => {
+            if (p.data.result_time) {
+              return this.$q_date.formatDate(p.data.result_time * 1000, 'YYYY-MM-DD HH:mm:ss')
+            }
+            return ''
+          }
+        },
+        {
+          headerName: '执行状态',
+          field: 'status',
+          width: this.nowpx(0.15) + 'px',
+          valueGetter: p => {
+            switch (parseInt(p.data.status)) {
+              case 1:
+                return '已发起'
+                break
+              case 2:
+                return '已响应'
+                break
+              case 3:
+                return '已执行'
+                break
+            }
+          }
+        },
+
+        {
+          headerName: '操作',
+          field: 'id',
+          cellRendererFramework: 'Operator',
+          width: this.nowpx(0.17) + 'px'
+        }
+      ],
+      localeText: this.$ag_grid_localeText,
+      searchQuery: '',
+
+      page: {
+        pageIndex: 1,
+        pSize: 20,
+        totalCount: 0
+      },
+      stop: false,
+      detailDialogStatus: false
+    }
+  },
+  mounted () {},
+  computed: {},
+  created () {
+    this.getList()
+    this.context = this
+  },
+  methods: {
+    getList () {
+      this.isPoppupStatus = false
+      const obj = {
+        name: this.searchQuery,
+        pSize: this.page.pSize,
+        pageIndex: this.page.pageIndex
+      }
+      this.$store
+        .dispatch('apisupplier/getLogList', obj)
+        .then((res) => {
+          if (res.code == 200) {
+            this.page.totalCount = res.data && res.data.page ? res.data.page.totalCount : 0
+            this.dataList = res.data && res.data.list ? res.data.list : []
+          }
+        })
+        .catch((error) => {})
+    },
+
+    // 每页数
+    sizeChangeHandle (val) {
+      this.page.pSize = val
+      this.page.pageIndex = 1
+      this.getList()
+    },
+    // 当前页
+    currentChangeHandle (val) {
+      this.page.pageIndex = val
+      this.getList()
+    },
+    showLogViewData (logId) {
+      this.detailDialogStatus = true
+      this.$nextTick(() => {
+        this.$refs.logViewRef.getViewData(logId)
+      })
+    },
+
+    clearnBut () {
+      this.searchQuery = ''
+      this.getList()
+    },
+    nowpx (px) {
+      let nowWidth = this.$q.screen.width
+      if (nowWidth <= this.$q.screen.sizes.md) {
+        nowWidth = 1024
+      }
+      return parseInt(nowWidth * px)
+    },
+    onFirstDataRendered (params) {
+      const nowWidth = this.$q.screen.width
+      if (nowWidth > this.$q.screen.sizes.md) {
+        params.api.sizeColumnsToFit()
+      }
+    },
+
+    authorityMeta (key) {
+      if (this.$route.meta) {
+        const new_arr = this.$route.meta.map((obj) => {
+          return obj.id
+        })
+        if (new_arr.indexOf(key) >= 0) {
+          return true
+        }
+      }
+      return false
+    }
+  }
+}
+</script>

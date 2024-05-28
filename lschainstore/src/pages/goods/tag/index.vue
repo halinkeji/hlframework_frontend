@@ -1,0 +1,369 @@
+<template>
+  <q-page class="fit">
+    <div class="fit column no-wrap justify-between items-stretch content-stretch no-scroll">
+      <div class="col-shrink bg-white q-px-xs q-pb-md">
+        <div class="q-gutter-xs row ">
+          <div class=" col-12 col-md-2">
+             <q-input  clearable outlined v-model="searchName" label="标签名称" dense />
+          </div>
+
+          <div class="col-12 col-md-4" v-if="is_main_store">
+              <q-select
+                label="查询门店"
+                v-model="selectStoreData"
+                option-value="id"
+                option-label="name"
+                multiple
+                emit-value
+                map-options
+                dense
+                outlined
+                clearable
+                use-chips
+                :options="libInStoreList"
+              />
+           </div>
+          <q-btn color="primary" unelevated label="搜索" @click="getGoodsTagList" />
+          <q-btn color="warning" unelevated label="重置" @click="clean" />
+          <q-btn color="primary" unelevated label="新增" v-if="authorityMeta('add')" @click="addPopup" />
+          <q-btn color="red" unelevated :disable="dataListSelections.length > 0 ? false : true" label="批量删除" v-if="authorityMeta('delAll')" @click="delAll()" />
+        </div>
+      </div>
+
+      <div class="col-shrink bg-white q-px-xs full-height bg-grey-2">
+        <ag-grid-vue
+          ref="agGridTable"
+          :components="components"
+          :gridOptions="gridOptions"
+          class="ag-theme-balham hl_header_center hl_content_center full-height"
+          :columnDefs="columnDefs"
+          :suppressMovableColumns="true"
+          :rowData="goodsTagData"
+          :rowDragManaged="true"
+          colResizeDefault="shift"
+          :animateRows="false"
+          :floatingFilter="false"
+          :enableCellTextSelection="true"
+          @first-data-rendered="onFirstDataRendered"
+          rowHeight="50"
+          rowSelection="multiple"
+          :suppressCellSelection="true"
+          :suppressRowClickSelection="true"
+          :stopEditingWhenGridLosesFocus="true"
+          :singleClickEdit="true"
+          @rowSelected="rowSelectedAg"
+          :context="context"
+          :localeText="localeText"
+        ></ag-grid-vue>
+      </div>
+      <div class="col-shrink bg-white q-pb-md">
+        <hl-pagination
+          @size-change="sizeChangeHandle"
+          @current-change="currentChangeHandle"
+          :current-page="page.pageIndex"
+          :page-sizes="[20, 50, 100, 200, 300, 500, 1000]"
+          :page-size="page.pageSize"
+          :total="page.pageTotal"
+        ></hl-pagination>
+      </div>
+    </div>
+
+    <add-tag @getMethods="getGoodsTagList" ref="addRef" v-if="adddTagShow"></add-tag>
+  </q-page>
+</template>
+
+<script>
+
+import AddTag from './components/AddTag.vue'
+import Mode from './components/AgMode'
+import AgOperate from './components/AgOperate'
+
+export default {
+  name: 'PageIndex',
+  components: {
+    AddTag,
+    Mode,
+    AgOperate
+  },
+  data () {
+    return {
+      searchName: '',
+      adddTagShow: false,
+      gridOptions: {},
+      components: {
+        AddTag,
+        Mode
+      },
+      context: null,
+      goodsTagData: [],
+      dataListSelections: {},
+      columnDefs: [
+        {
+          filter: false, // 是否过滤
+          checkboxSelection: true, // 是否展示复选框
+          headerCheckboxSelectionFilteredOnly: true, // 标题复选框选择之后 false 选择所有行 true 选择筛选出来的行
+          headerCheckboxSelection: true, // 标题复选框开关状态
+          width: this.nowpx(0.05) + 'px'
+        },
+        {
+          headerName: '#',
+          width: 60,
+          valueGetter: function (params) {
+            return params.node ? params.node.rowIndex + 1 : null
+          }
+        },
+        {
+          headerName: '排序',
+          field: 'gt_sort',
+          filter: false,
+          editable: true,
+          onCellValueChanged: this.changeNumber,
+          width: this.nowpx(0.2) + 'px'
+        },
+
+        {
+          headerName: '名称',
+          field: 'gt_name',
+          filter: false,
+          width: this.nowpx(0.2) + 'px'
+        },
+        {
+          headerName: '快捷键',
+          field: 'gt_hot_key',
+          filter: false,
+          width: this.nowpx(0.2) + 'px'
+        },
+        {
+          headerName: '状态',
+          field: 'gt_status',
+          cellRendererFramework: 'Mode',
+          width: this.nowpx(0.1) + 'px'
+        },
+        {
+          headerName: '门店',
+          field: 'store.name',
+          width: this.nowpx(0.15) + 'px'
+        },
+        {
+          headerName: '添加时间',
+          field: 'created_at',
+          filter: false,
+          valueGetter: (p) => {
+            return this.$q_date.formatDate(p.data.created_at * 1000, 'YYYY-MM-DD HH:mm:ss')
+          },
+          width: this.nowpx(0.2) + 'px'
+        },
+        {
+          headerName: '操作',
+          filter: false,
+          field: 'id',
+          cellRendererFramework: 'AgOperate',
+          width: this.nowpx(0.2) + 'px'
+        }
+      ],
+      page: {
+        pageIndex: 1,
+        pageSize: 20,
+        pageTotal: 0
+      },
+      localeText: this.$ag_grid_localeText,
+      goodsType: '',
+      selectStoreData: [],
+      libInStoreList: []
+    }
+  },
+
+  mounted () {
+    this.getGoodsTagList()
+  },
+  created () {
+    this.context = this
+    if (this.is_main_store) {
+      this.getLibInStoreData()
+    }
+  },
+  computed: {
+    is_main_store () {
+      return this.$store.getters['merchant/is_main_store']
+    }
+  },
+  methods: {
+    getLibInStoreData () {
+      this.$store.dispatch('merchant/getLibInStoreData').then((res) => {
+        if (res.code == 200) {
+          this.libInStoreList = res.data ? res.data : []
+        }
+      })
+    },
+    // 新增 编辑
+    addPopup (id) {
+      this.adddTagShow = true
+      this.$nextTick(() => {
+        this.$refs.addRef.init(id)
+      })
+    },
+    // 获取当前每页显示数量
+    sizeChangeHandle (val) {
+      this.page.pageSize = val
+      this.getGoodsTagList()
+    },
+    // 当前页数
+    currentChangeHandle (val) {
+      this.page.pageIndex = val
+      this.getGoodsTagList()
+    },
+
+    // 获取列表,搜索
+    getGoodsTagList () {
+      this.adddTagShow = false
+      const obj = {
+        text: this.searchName,
+        type: this.goodsType,
+        page: this.page.pageIndex,
+        pSize: this.page.pageSize,
+        selectStoreData: this.selectStoreData
+      }
+      this.$store
+        .dispatch('goodsTag/getGoodsTagList', obj)
+        .then((res) => {
+          if (res.code == 200) {
+            this.page.pageTotal = res.data ? res.data.page.totalCount : 0
+
+            this.goodsTagData = res.data.list
+          }
+        })
+        .catch((error) => {
+          this.$q.notify({
+            message: '失败',
+            icon: 'ion-close-circle-outline',
+            timeout: 500,
+            position: 'top-right',
+            caption: error.message,
+            color: 'red'
+          })
+        })
+    },
+    // 排序并加限制
+    changeNumber (p) {
+      const itemsToUpdate = []
+      const data = p.data
+      const regu = /^\+?[0-9][0-9]*$/
+      data.gt_sort = data.gt_sort.replace(/\s+/g, '')
+      if (!data.gt_sort) {
+        this.getGoodsTagList()
+        return ''
+      }
+      if (!regu.test(data.gt_sort)) {
+        this.$q.notify({
+          message: '错误',
+          caption: '请输入正整数',
+          color: 'red',
+          icon: 'ion-close-circle-outline',
+          timeout: 500,
+          position: 'top-right'
+        })
+        this.getGoodsTagList()
+      } else {
+        const obj = {
+          gt_sort: data.gt_sort,
+          id: data.id
+        }
+        this.$store.dispatch('goodsTag/addData', obj).then((res) => {
+          if (res.code == 200) {
+            this.$q.notify({
+              message: '成功',
+              caption: '修改排序成功',
+              color: 'green',
+              icon: 'ion-checkmark-circle-outline',
+              timeout: 500,
+              position: 'top-right'
+            })
+            this.getGoodsTagList()
+          }
+        })
+      }
+      itemsToUpdate.push(data)
+      const res = p.api.applyTransaction({ update: itemsToUpdate })
+    },
+    nowpx (px) {
+      let nowWidth = this.$q.screen.width
+      if (nowWidth <= this.$q.screen.sizes.md) {
+        nowWidth = 1024
+      }
+      return parseInt(nowWidth * px)
+    },
+    onFirstDataRendered (params) {
+      const nowWidth = this.$q.screen.width
+      if (nowWidth > this.$q.screen.sizes.md) {
+        params.api.sizeColumnsToFit()
+      }
+    },
+
+    rowSelectedAg (p) {
+      this.dataListSelections = p.api.getSelectedRows()
+    },
+    delAll () {
+      this.$q
+        .dialog({
+          type: 'confirm',
+          color: 'primary',
+          title: '是否确认',
+          message: `确定删除 ${this.dataListSelections.length} 条商品标签吗`,
+          cancel: true,
+          persistent: true
+        })
+        .onOk(() => {
+          this.deleteRecordBatch()
+        })
+    },
+    deleteRecordBatch () {
+      const dataListSelections = this.gridOptions.api.getSelectedRows()
+      if (dataListSelections.length > 0) {
+        const accountInfo = this.$q.localStorage.getItem('lschainstore_account_info')
+
+        const obj = dataListSelections.map((item) => {
+          if (parseInt(item.store_id) == parseInt(accountInfo.store_id)) {
+            return item.id
+          } else if (this.is_main_store) {
+            return item.id
+          } else {
+            return null
+          }
+        })
+
+        this.$store.dispatch('goodsTag/delData', obj).then((res) => {
+          if (res.code == 200) {
+            this.$q.notify({
+              icon: 'ion-checkmark-circle-outline',
+              timeout: 500,
+              position: 'top-right',
+              color: 'green',
+              message: '成功',
+              caption: '成功删除 ' + res.data + ' 条标签'
+            })
+            this.getGoodsTagList()
+            this.dataListSelections = []
+          }
+        })
+      }
+    },
+    clean () {
+      this.searchName = ''
+      this.goodsType = ''
+      this.selectStoreData = []
+      this.getGoodsTagList()
+    },
+    authorityMeta (key) {
+      if (this.$route.meta) {
+        const new_arr = this.$route.meta.map((obj) => {
+          return obj.id
+        })
+        if (new_arr.indexOf(key) >= 0) {
+          return true
+        }
+      }
+      return false
+    }
+  }
+}
+</script>

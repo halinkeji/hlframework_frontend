@@ -1,0 +1,44 @@
+<template>
+  <q-page class="fit">
+    <div class="fit column no-wrap justify-between items-stretch content-stretch no-scroll">
+      <div class="col-shrink bg-white q-px-xs q-pb-md">
+        <q-tabs v-model="tab" indicator-color="primary" active-color="primary" align="left" inline-label class="bg-white">
+          <q-tab name="1" icon="las la-qrcode" label="支付码" />
+          <q-tab name="2" icon="lab la-whmcs" label="消费设置" />
+          <q-tab name="3" icon="lar la-file" label="消费记录" />
+        </q-tabs>
+      </div>
+
+      <div class="col-shrink  full-height bg-grey-2" v-if="parseInt(tab) == 1">
+        <payment-code></payment-code>
+      </div>
+      <div class="col-shrink full-height bg-grey-2" v-if="parseInt(tab) == 2">
+        <pay-config></pay-config>
+      </div>
+      <div class="col-shrink full-height bg-grey-2" v-if="parseInt(tab) == 3">
+        <pay-record></pay-record>
+      </div>
+    </div>
+  </q-page>
+</template>
+
+<script>
+import PaymentCode from './PaymentCode.vue'
+import PayConfig from './PayConfig.vue'
+import PayRecord from './PayRecord.vue'
+export default {
+  name: 'zzpay',
+  components: { PaymentCode, PayConfig, PayRecord },
+  data () {
+    return {
+      tab: '1'
+    }
+  },
+  created () {},
+  mounted () {},
+  computed: {},
+  methods: {}
+}
+</script>
+
+<style></style>

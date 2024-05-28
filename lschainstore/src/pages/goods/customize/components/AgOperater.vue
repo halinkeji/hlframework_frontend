@@ -1,0 +1,90 @@
+<template>
+  <div>
+    <q-btn @click="showDetailPopup()" color="secondary" class="q-mr-sm" unelevated label="详细属性" v-if="authorityMeta('detail')">
+      <q-tooltip>
+        详细属性
+      </q-tooltip>
+    </q-btn>
+    <q-btn @click="showPopup()" color="primary" class="q-mr-sm" unelevated label="修改" v-if="authorityMeta('edit')">
+      <q-tooltip>
+        修改
+      </q-tooltip>
+    </q-btn>
+    <q-btn color="red" label="删除" unelevated ref="buttonRefss" @click="confirmDeleteRecord()" v-if="authorityMeta('del')">
+      <q-tooltip>
+        删除
+      </q-tooltip>
+    </q-btn>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'AgOperater',
+  data () {
+    return {
+      params: [],
+      dataId: '',
+      delectPrompt: false
+    }
+  },
+
+  mounted () {},
+  created () {},
+  computed: {},
+  methods: {
+    confirmDeleteRecord () {
+      this.$q
+        .dialog({
+          title: '确定',
+          message: `删除名称为 "${this.params.data.cc_name}"的自定义属性吗？`,
+          cancel: true,
+          persistent: true
+        })
+        .onOk(() => {
+          this.deleteRecord()
+        })
+    },
+
+    deleteRecord () {
+      const obj = {
+        id: this.params.data.id
+      }
+      this.$store.dispatch('goodsCustomize/delData', obj).then((res) => {
+        if (res.code == 200) {
+          this.$q.notify({
+            message: '成功',
+            caption: '成功删除自定义属性!',
+            color: 'green',
+            icon: 'ion-checkmark-circle-outline',
+            timeout: 500,
+            position: 'top-right'
+          })
+          this.params.context.getCustomizeList()
+        }
+      })
+    },
+
+    showPopup () {
+      this.dataId = this.params.data.id
+      this.params.context.addPopup(this.dataId)
+    },
+    showDetailPopup () {
+      this.dataId = this.params.data.id
+      this.params.context.addDetailPopup(this.dataId)
+    },
+
+    authorityMeta (key) {
+      if (this.$route.meta) {
+        const new_arr = this.$route.meta.map((obj) => {
+          return obj.id
+        })
+        if (new_arr.indexOf(key) >= 0) {
+          return true
+        }
+      }
+      return false
+    }
+  }
+}
+</script>

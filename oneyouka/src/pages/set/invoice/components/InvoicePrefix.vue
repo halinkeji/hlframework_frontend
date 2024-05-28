@@ -1,0 +1,112 @@
+<template>
+  <div class="fit">
+    <div class="fit column no-wrap justify-between items-stretch content-stretch no-scroll">
+      <div class="col-shrink bg-white q-pa-sm full-height bg-grey-2">
+        <q-form ref="invoiceDataRef" class="q-gutter-md">
+          <div class="row">
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_consume" label="消费收银单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_quickConsume" label="快速消费单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_rechargeMoney" label="会员充值单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_consumeHangUp" label="消费挂单单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_addCount" label="增加计次单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_addGroupCount" label="套餐充次单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_deductCount" label="计次消费单据前缀" />
+
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_deductMoney" label="储值扣费单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_addPoints" label="增加积分单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_deductPoint" label="积分扣除单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_returnGoods" label="顾客退货单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_erpIn" label="采购入库单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_erpOut" label="采购退货单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_erpCheck" label="库存盘点单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_erpSale" label="ERP销货单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_erpSaleReturn" label="ERP销货退货单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_erpRepayment" label="ERP收款单据前缀" />
+            <q-input outlined dense class=" col-12 col-md-4 q-mt-lg q-px-sm" v-model="merchantFrom.prefix_invoice_erpPayment" label="ERP付款单据前缀" />
+          </div>
+        </q-form>
+      </div>
+      <div class="col-shrink bg-white q-py-sm text-center">
+        <q-btn label="提交" color="primary" unelevated class="q-px-xl" @click="saveBut()" />
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  name: 'invoiceSetDetails',
+  data () {
+    return {
+      merchantFrom: {
+        prefix_invoice_consume: '',
+        prefix_invoice_quickConsume: '',
+        prefix_invoice_deductCount: '',
+        prefix_invoice_addCount: '',
+        prefix_invoice_addGroupCount: '',
+        prefix_invoice_rechargeMoney: '',
+        prefix_invoice_deductMoney: '',
+        prefix_invoice_addPoints: '',
+        prefix_invoice_deductPoint: '',
+        prefix_invoice_returnGoods: '',
+        prefix_invoice_consumeHangUp: '',
+        prefix_invoice_erpIn: '',
+        prefix_invoice_erpOut: '',
+        prefix_invoice_erpCheck: '',
+        prefix_invoice_erpSale: '',
+        prefix_invoice_erpSaleReturn: '',
+        prefix_invoice_erpRepayment: '',
+        prefix_invoice_erpPayment: ''
+      },
+      disabledStatus: false
+    }
+  },
+  components: {},
+  mounted () {},
+
+  computed: {},
+  methods: {
+    getPrefix () {
+      this.$store
+        .dispatch('invoice/getPrefixData')
+        .then((res) => {
+          if (res.code == 200) {
+            this.merchantFrom = res.data ? res.data : {}
+          }
+        })
+        .catch((error) => {})
+    },
+    // 保存
+    saveBut () {
+      this.$refs.invoiceDataRef.validate().then((success) => {
+        if (success) {
+          this.disabledStatus = true
+          const obj = {
+            ...this.merchantFrom
+          }
+          this.$store
+            .dispatch('invoice/addPrefix', obj)
+            .then((res) => {
+              if (res.code == 200) {
+                this.$q.notify({
+                  color: 'green',
+                  message: '成功',
+                  caption: '添加成功',
+                  icon: 'ion-checkmark-circle-outline',
+                  timeout: 500,
+                  position: 'top-right'
+                })
+              }
+            })
+            .catch((error) => {
+              this.disabledStatus = false
+            })
+          this.hideNowPage()
+        }
+      })
+    },
+    hideNowPage () {
+      this.disabledStatus = false
+    }
+  }
+}
+</script>

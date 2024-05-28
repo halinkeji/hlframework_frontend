@@ -1,0 +1,30 @@
+{
+  "id": "3823735",
+  "name": "第三方渠道图标",
+  "font_family": "hl-client-icon",
+  "css_prefix_text": "client-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1270489",
+      "name": "user",
+      "font_class": "1USER",
+      "unicode": "e63c",
+      "unicode_decimal": 58940
+    },
+    {
+      "icon_id": "15933094",
+      "name": "微信",
+      "font_class": "weixin",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "18368062",
+      "name": "企业微信01",
+      "font_class": "qiyeweixin01",
+      "unicode": "e688",
+      "unicode_decimal": 59016
+    }
+  ]
+}

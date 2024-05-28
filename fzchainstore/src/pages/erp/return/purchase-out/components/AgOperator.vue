@@ -1,0 +1,66 @@
+<template>
+  <q-btn color="red" unelevated @click="confirmDeleteRecord" flat icon="delete_forever" v-if="params.data.goods_id > 0">
+    <q-tooltip>
+      删除
+    </q-tooltip>
+  </q-btn>
+</template>
+
+<script>
+export default {
+  name: 'Operator',
+  data () {
+    return {
+      dataId: 0
+    }
+  },
+  mounted () {},
+  computed: {},
+  created () {
+    this.dataId = this.params.data.id
+  },
+  methods: {
+    confirmDeleteRecord () {
+      this.$q
+        .dialog({
+          type: 'confirm',
+          color: 'primary',
+          title: '是否确认',
+          message: `确定删除商品名称为  "${this.params.data.eb_goodsName}的商品吗"`,
+          cancel: true
+        })
+        .onOk(() => {
+          this.deleteRecord()
+        })
+    },
+    deleteRecord () {
+      const obj = [this.dataId]
+      this.$store
+        .dispatch('erpin/delData', obj)
+        .then((res) => {
+          if (res.code == 200) {
+            this.$q.notify({
+              message: '成功',
+              caption: '删除商品成功',
+              icon: 'ion-checkmark-circle-outline',
+              timeout: 500,
+              position: 'top-right',
+              color: 'green'
+            })
+            this.params.context.getList()
+          }
+        })
+        .catch((error) => {
+          this.$q.notify({
+            message: '失败',
+            icon: 'ion-close-circle-outline',
+            timeout: 500,
+            position: 'top-right',
+            caption: '操作失败',
+            color: 'red'
+          })
+        })
+    }
+  }
+}
+</script>

@@ -1,0 +1,29 @@
+@font-face {
+  font-family: "hl-client-icon"; /* Project id 3823735 */
+  /* Color fonts */
+  src: 
+       url('data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAAToAAwAAAAACGwAAASbAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIjAjGgZgAEwKiTSHVgE2AiQDFgsUAAQgBYIsByAbpwbILjEVGV2udhS3yevCsRsNdFPMV/cLQMHD//3qvpiM44MzVhptKfTHkxIsN3TBW7dpgao0sd7/3M+/d1FF0UlBVTqNpHdmm9BEK8D++aDfc/r3spfuVg5qMjXz12nuvOsKOAr9AdIEKBvS3hoho09QqSZfra0+JNFSrGRCosV/Z3GZ/kMS8UgkETKJaJYuMUSaeGQYuzABBEAB+AFiUCEBQEAGlHkyCJUCGkqmAzjBsnYsvx/M+/yvHdH5j9YAF7CUIjk8WQDQsCcRFjAXGVAMRBBQmq0gT7CFby2q+f8MoGbApPqJISFdjYsO0CM1R/sn7TlUwgDcMChE1J7G/xV/1mIMwC/5/9DfXsrWt1WrmF3IEtbFYm79Se3RY6RUM2U1HDSpiIRFcmEtDHtJkHCZ7qpb4iN5JGimCbUOQMRgJEn3MYabGRUTCvex0gJ15FVFBV9RsXbXVEhcT+iRJMbgeETZ04Q7rl1j7a5cga/aRjT651NXr0NENO8qe7+oHTgia5AyRVKk7bPRp4UMDDAGtE6tCIjgTirTuRjRyYG5nShn5pzX3JUtBa1dlsFqR5rZWPs4GwLEkk9fH61P49Iw7Ju27Oz2r9hjIsOW/bIEAbGHNPpG5DrsGBAjbtHyauSw4bQKyhiACSZEGHH0LkUtWFyJGJIZu2o4rkuHZWDl4s3CBIb5s5lIvyZy1J/GRk4IvYMRehjagGkMFBIEhDWORjvXfJP610sGhxFBZ86AgGnoPmxVmYlB21FMBNDhJYXCc1pRBsoZ1V40ji7Ft9vShenEzBErBiq0RWBM58sNGvpfiqrZhQqg8NzovPuHdkJJUcz4JYPjf/knyPwnynjLYtzPFoklJ6X89/mwOStm3p0NfNdS0J49QUu5uI7boqUgOizDc28p0MwrEmJvI5rxR7TMrfl2+Do9/NL1bF3Glk5xERPT4BvqVdPxqBeH6Rp6mo2tAttGltaxDotAl4mFv9tG0pryBcwUXw4myeBlHMcOkoSDcPybfL1dUQyXkhIXRlSo7T4ULzxcvF7qggA+JDKX172CJuWDboDG4PnX1LGLZrZdJBuZtlXh921cdtN9AKLs6PbCgyeO2u4LjXJhlJQwXICKmkxCTJIYLiLJQTj8X8vBrKz7gyd1AJD0acoDd4EOQNatl5OMEqGQkDPwiUDJ4d3jJDJFz/Am+32qEIWSJuiUnr+N50s7HvJtxcRRB6NqIIgl48KsZ1jKsR7/j8vbLHhbVIkTANfigTsCZB4eiEfASzTFXGB0HLkTEIi1UB9We0J7+g1DC2RZIrViw6BqwyBrDkVJ5ypyTqufrtIzEVVfP8frlIvVRGUAdTKrss8vPnDEajp7Uyl9hdM3pZzMd/iHfInH7k8+jHaRmWlAngHwojE16DeHLjlc80r0ywchKoVRSjUCuDgBvp4bKqvtVKCAWhAgmneT8IEErRqoJpNFT03BTr6aigrWfBp2ZkAO+RiSbsbnkkkh5SLk0lCEIUw8lk0F+aRSiilGmKi8PUEE6+Dptlx3kCHdcjl9KsEoMk0oE+icmp471pubgjLS7PJPUBA=') format('woff2'),
+       url('iconfont.woff?t=1671242406667') format('woff'),
+       url('iconfont.ttf?t=1671242406667') format('truetype');
+}
+
+.hl-client-icon {
+  font-family: "hl-client-icon" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.client-1USER:before {
+  content: "\e63c";
+}
+
+.client-weixin:before {
+  content: "\e607";
+}
+
+.client-qiyeweixin01:before {
+  content: "\e688";
+}
+
